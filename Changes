@@ -1,0 +1,6 @@
+Revision history for Perl extension Eixo::RestServer.
+
+0.01  Mon Feb  9 08:20:13 2015
+	- original version; created by h2xs 1.23 with options
+		-AX Eixo::RestServer
+
