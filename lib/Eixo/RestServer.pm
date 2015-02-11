@@ -13,21 +13,78 @@ has(
 
 	server=>undef,
 
+	methods_r=>undef,
 );
 
 sub install{
 	my ($self) = @_;
 
+	no strict 'refs';
+
 	my $methods = &Eixo::RestServer::Parser::parse($self);
 
 	$self->server->install($self);
 
+	$self->methods_r({
+
+		map {
+
+			$_->{entity} .'_' . $_->{verb} => $_		
+
+
+		} @$methods
+
+	});
 }
 
 sub process{
 	my ($self, $entity, $verb, %args) = @_;
 
+	my $action = $self->route($entity, $verb);
 
+	$self->$action(%args) if($action);
+
+}
+
+sub route{
+	my ($self, $entity, $verb) = @_;
+
+	if(my $action = $self->methods_r->{$entity . '_' . $verb}){
+		return $action->{code};
+	}
+	else{
+		$self->notFound;
+	}
+
+}
+
+sub notFound{
+
+	use Data::Dumper; die(Dumper($_[0]));
+
+}
+
+
+sub ok{
+	my ($self, $response) = @_;
+	
+	{
+		code=>200,
+
+		body=>$response
+
+	}
+}
+
+sub ko{
+	my ($self, $code, $response) = @_;
+
+	{
+		code=>$code,
+
+		body=>$response
+
+	}
 }
 
 

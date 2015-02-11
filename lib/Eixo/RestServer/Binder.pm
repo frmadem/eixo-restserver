@@ -18,6 +18,12 @@ sub install{
 
 }
 
+sub process{
+	my ($self, $entity, $verb, %args) = @_;
+
+	$self->instance->process($entity, $verb, %args);
+}
+
 sub run{
 	my ($self, $head, $args) = @_;
 
