@@ -4,15 +4,50 @@ use Eixo::RestServer::BinderTest;
 
 my $test_request;
 
+my $RESPONSE;
+
 my $server = A->new(
 
-	server=>$test_request = Eixo::RestServer::BinderTest->new
+	server=>$test_request = Eixo::RestServer::BinderTest->new(
+
+		on_response=>sub {
+
+			$RESPONSE = $_[0];
+
+		}
+
+	)
 );
 
 $server->install;
 
 $test_request->request('alumno', 'GET');
 
+ok($RESPONSE && ref($RESPONSE) eq 'HASH', 'A response has been obtained');
+
+ok($RESPONSE->{code} == 200, 'Response\'s code is ok');
+
+ok($RESPONSE->{body} eq 'GET_alumno', 'Body is all right');
+
+$test_request->request('alumno', 'PUT');
+
+ok($RESPONSE && ref($RESPONSE) eq 'HASH', 'A response has been obtained');
+
+ok($RESPONSE->{code} == 403, 'Response\'s code is ok');
+
+$test_request->request('alumno', 'PUT', my_secret=>'123');
+
+ok($RESPONSE && ref($RESPONSE) eq 'HASH', 'A response has been obtained');
+
+ok($RESPONSE->{code} == 200, 'Response\'s code is ok');
+
+ok($RESPONSE->{body} eq 'PUT_alumno', 'Body is all right');
+
+$test_request->request('teacher', 'PUT', my_secret=>'123');
+
+ok($RESPONSE->{code} == 404, 'Response\'s code is ok');
+
+done_testing();
 
 package A;
 
@@ -27,25 +62,28 @@ sub authorized{
 
 }
 
-sub GET_alumno :Restricted{
+sub GET_alumno {
 
+	$_[0]->ok(
+		'GET_alumno'
+	);
 }
 
 sub PUT_alumno :Restricted{
 
+	$_[0]->ok(
+
+		'PUT_alumno'
+
+	);
+
 }
 
-sub DELETE_alumno :Restricted{
+sub DELETE_alumno {
 
 }
 
-sub POST_alumno :Restricted :Defer{
-	my ($self, %args) = @_;
-
-	$self->addJob('alumnos', {
-
-
-	});
+sub POST_alumno {
 
 }
 

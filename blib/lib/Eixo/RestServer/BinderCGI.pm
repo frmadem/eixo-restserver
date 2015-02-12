@@ -11,6 +11,21 @@ has(
 
 );
 
+sub response{
+	my ($self, $response) = @_;
+
+	return [
+
+		[$response->{code}],
+
+		[],
+
+		[$response->{body}]
+
+	];		
+
+}
+
 sub __install{
 	my ($self) = @_;
 
@@ -48,9 +63,34 @@ sub start_server{
 }
 
 sub handle_request{
+	my ($self) = @_;
+
+	my @args;
+
+	my $ret = $self->{on_request}->(@args);
+
+	
+	$self->__head($ret->[0], $ret->[1]);
+	$self->__body($ret->[2]);
 
 }
 
+	sub __head{
+		my ($self, $code, $head_args) = @_;
+
+		my $c = $code->[0];
+
+		print "HTTP/1.0 $c\r\n";
+
+	}
+
+
+	sub __body{
+		my ($self, $body) = @_;
+
+		print join('', @{$body});
+
+	}
 
 1;
 

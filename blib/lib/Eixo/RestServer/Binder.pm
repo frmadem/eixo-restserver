@@ -34,7 +34,8 @@ sub run{
 }
 
 sub response{
-	
+	my ($self, $response) = @_;
+
 }
 
 sub __parser{

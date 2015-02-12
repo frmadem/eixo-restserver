@@ -8,6 +8,8 @@ has(
 
 	on_request=>undef,
 
+	on_response=>undef,
+
 );
 
 sub request{
@@ -18,7 +20,7 @@ sub request{
 
 sub response{
 
-	use Data::Dumper; die Dumper(\@_);
+	$_[0]->on_response->(@_[1..$#_]);
 
 }
 

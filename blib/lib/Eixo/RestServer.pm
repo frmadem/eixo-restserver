@@ -13,6 +13,8 @@ use Eixo::RestServer::Parser;
 use Eixo::RestServer::Queues;
 use Eixo::RestServer::Job;
 
+my %ATTR;
+
 has(
 
 	server=>undef,
@@ -61,7 +63,7 @@ sub route{
 		return $action->{code};
 	}
 	else{
-		$self->notFound;
+		return $self->can('notFound');
 	}
 
 }
@@ -69,6 +71,12 @@ sub route{
 
 	sub __RUN{
 		my ($self, $code, %args) = @_;
+
+		my $sym = ref($code) ? $code : ($code = $self->can($code));
+
+		$self->__restricted(%args) if(&__hasAdverb($sym, 'RESTRICTED'));
+
+		$self->__defer(%args) if(&__hasAdverb($sym, 'DEFER'));
 
 		$self->$code(%args);
 
@@ -79,6 +87,7 @@ sub route{
 			$self->response
 	
 		);
+
 	}
 
 #
@@ -120,10 +129,21 @@ sub jobInstance{
 
 sub notFound{
 
-	use Data::Dumper; die(Dumper($_[0]));
+	$_[0]->ko(
+
+		'404'
+
+	);
 
 }
 
+sub notAuthorized{
+
+	$_[0]->ko(
+
+		'403'
+	);
+}
 
 sub ok{
 	my ($self, $response) = @_;
@@ -156,27 +176,19 @@ sub ko{
 #
 # Restricted install
 #
-sub Restricted :ATTR(CODE){
-	#my ($pkg, $sym, $code, $attr_name, $data) = @_;	
+sub Restricted :ATTR(ANY){
+	my ($pkg, $sym, $code, $attr_name, $data) = @_;	
 
-	#no warnings 'redefine';
-
-	#*{$sym} = sub {
-
-	#	my ($self, @args) = @_;
-
-	#	if($self->authorized(@args)){
-	#		$code->($self, @args);
-	#	}
-	#	else{
-
-	#		$self->not_authorized();
-	#	}
-
-
-	#};
+	&__declareAdverb($code, 'RESTRICTED');
 
 }
+
+	sub __restricted{
+		my ($self, @args) = @_;
+
+		$self->authorized(@args) || $self->notAuthorized();
+
+	}
 
 #
 # Deferred execution 
@@ -184,16 +196,7 @@ sub Restricted :ATTR(CODE){
 sub Defer :ATTR(CODE){
 	my ($pkg, $sym, $code, $attr_name, $data) = @_;	
 
-	no warnings 'redefine';
-
-	*{$sym} = sub {
-
-		my ($self, @args) = @_;
-
-		
-
-	};
-	
+	&__declareAdverb($code, 'DEFER');
 
 }
 
@@ -208,5 +211,27 @@ sub Defer :ATTR(CODE){
 		$self->$method($job, @args);
 	}
 
+
+#
+# Adverbs
+#
+sub __declareAdverb{
+	my ($sym, $value) = @_;
+
+	$ATTR{$sym} = [] unless($ATTR{$sym});
+
+	push @{$ATTR{$sym}}, $value;
+
+}
+
+sub __hasAdverb{
+	my ($sym, $value) = @_;
+
+	grep {
+
+		$_ eq $value
+
+	} @{$ATTR{$sym} || []}
+}
 
 1;

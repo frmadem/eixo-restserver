@@ -63,7 +63,7 @@ sub route{
 		return $action->{code};
 	}
 	else{
-		$self->notFound;
+		return $self->can('notFound');
 	}
 
 }
@@ -72,7 +72,7 @@ sub route{
 	sub __RUN{
 		my ($self, $code, %args) = @_;
 
-		my $sym = ref($code) ? $code : $self->can($code);
+		my $sym = ref($code) ? $code : ($code = $self->can($code));
 
 		$self->__restricted(%args) if(&__hasAdverb($sym, 'RESTRICTED'));
 
@@ -87,6 +87,7 @@ sub route{
 			$self->response
 	
 		);
+
 	}
 
 #
@@ -128,7 +129,11 @@ sub jobInstance{
 
 sub notFound{
 
-	use Data::Dumper; die(Dumper($_[0]));
+	$_[0]->ko(
+
+		'404'
+
+	);
 
 }
 

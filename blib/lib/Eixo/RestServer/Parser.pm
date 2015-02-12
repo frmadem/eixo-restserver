@@ -36,10 +36,6 @@ sub parse{
 	sub __parseAction{
 		my ($action, $module) = @_;
 
-		use Data::Dumper;
-
-		print Dumper(get($module->can($action)));	
-
 		my ($verb, $entity) = $action =~ /$ACTION/;	
 
 		{

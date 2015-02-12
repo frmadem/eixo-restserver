@@ -8,12 +8,20 @@ has(
 
 	on_request=>undef,
 
+	on_response=>undef,
+
 );
 
 sub request{
 	my ($self, $entity, $verb, %args) = @_;
 
 	$self->on_request->($entity, $verb, %args);		
+}
+
+sub response{
+
+	$_[0]->on_response->(@_[1..$#_]);
+
 }
 
 sub __install{
