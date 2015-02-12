@@ -18,12 +18,22 @@ sub install{
 
 }
 
+sub process{
+	my ($self, $entity, $verb, %args) = @_;
+
+	$self->instance->process($entity, $verb, %args);
+}
+
 sub run{
 	my ($self, $head, $args) = @_;
 
 	my ($entity, $verb, %args) = $self->__parser($head, $args);
 
 	$self->instance->process($entity, $verb, %args);
+	
+}
+
+sub response{
 	
 }
 

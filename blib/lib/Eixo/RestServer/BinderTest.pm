@@ -16,12 +16,6 @@ sub request{
 	$self->on_request->($entity, $verb, %args);		
 }
 
-sub response{
-
-	use Data::Dumper; die Dumper(\@_);
-
-}
-
 sub __install{
 	my ($self) = @_;
 

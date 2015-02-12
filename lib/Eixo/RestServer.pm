@@ -6,14 +6,24 @@ use warnings;
 
 use lib '/home/fmaseda/Eixo-RestServer/lib';
 
+use attributes;
+
 use Eixo::Base::Clase;
 use Eixo::RestServer::Parser;
+use Eixo::RestServer::Queues;
+use Eixo::RestServer::Job;
+
+my %ATTR;
 
 has(
 
 	server=>undef,
 
 	methods_r=>undef,
+
+	queues=>Eixo::RestServer::Queues->new,
+
+	response=>undef,
 );
 
 sub install{
@@ -42,7 +52,7 @@ sub process{
 
 	my $action = $self->route($entity, $verb);
 
-	$self->$action(%args) if($action);
+	$self->__RUN($action, %args) if($action);
 
 }
 
@@ -58,87 +68,165 @@ sub route{
 
 }
 
+
+	sub __RUN{
+		my ($self, $code, %args) = @_;
+
+		my $sym = ref($code) ? $code : $self->can($code);
+
+		$self->__restricted(%args) if(&__hasAdverb($sym, 'RESTRICTED'));
+
+		$self->__defer(%args) if(&__hasAdverb($sym, 'DEFER'));
+
+		$self->$code(%args);
+
+		END_RUN:
+
+		$self->server->response(
+
+			$self->response
+	
+		);
+	}
+
+#
+# Queues
+# 
+
+sub createQueue{
+	my ($self, $queue) = @_;
+
+	$self->queues->createQueue($queue);
+
+}
+
+#
+# Jobs
+#
+sub addJob{
+	my ($self, $job) = @_;
+
+	$self->queues->addJob($job);
+}
+
+sub getJob{
+	my ($self, $id) = @_;
+
+	$self->queues->getJob($id);
+}
+
+#
+# Job helper
+#
+sub jobInstance{
+	my ($self, %args) = @_;
+
+	my $id = $args{id} || Eixo::RestServer::Job::ID;
+}
+
+
+
 sub notFound{
 
 	use Data::Dumper; die(Dumper($_[0]));
 
 }
 
+sub notAuthorized{
+
+	$_[0]->ko(
+
+		'403'
+	);
+}
 
 sub ok{
 	my ($self, $response) = @_;
 	
-	{
+	$self->response({
+
 		code=>200,
 
 		body=>$response
 
-	}
+	});
+
+	goto END_RUN;
 }
 
 sub ko{
 	my ($self, $code, $response) = @_;
 
-	{
+	$self->response({
 		code=>$code,
 
 		body=>$response
 
-	}
+	});
+
+	goto END_RUN;
 }
 
 
 #
 # Restricted install
 #
-sub Restricted :ATTR(CODE){
+sub Restricted :ATTR(ANY){
 	my ($pkg, $sym, $code, $attr_name, $data) = @_;	
 
-	no warnings 'redefine';
-
-	*{$sym} = sub {
-
-		my ($self, @args) = @_;
-
-		if($self->authorized(@args)){
-			$code->($self, @args);
-		}
-		else{
-
-			$self->not_authorized();
-		}
-
-
-	};
+	&__declareAdverb($code, 'RESTRICTED');
 
 }
 
+	sub __restricted{
+		my ($self, @args) = @_;
 
-#package A;
+		$self->authorized(@args) || $self->notAuthorized();
+
+	}
+
 #
-#use strict;
-#use parent -norequire, qw(Eixo::RestServer);
+# Deferred execution 
 #
-#use Eixo::RestServer::BinderCGI;
+sub Defer :ATTR(CODE){
+	my ($pkg, $sym, $code, $attr_name, $data) = @_;	
+
+	&__declareAdverb($code, 'DEFER');
+
+}
+
+	sub __defer{
+		my ($self, $method, @args) = @_;
+
+		#
+		# Instance a Job
+		#
+		my $job = $self->jobInstance();
+
+		$self->$method($job, @args);
+	}
+
+
 #
-#sub GET_alumno{
+# Adverbs
 #
-#}
-#
-#sub PUT_alumno :Restricted{
-#
-#}
-#
-#sub DELETE_alumno :Restricted{
-#
-#}
-#
-#use Data::Dumper;
-#
-#die Dumper(A->new(
-#
-#	server=>Eixo::RestServer::BinderCGI->new
-#
-#)->install);
+sub __declareAdverb{
+	my ($sym, $value) = @_;
+
+	$ATTR{$sym} = [] unless($ATTR{$sym});
+
+	push @{$ATTR{$sym}}, $value;
+
+}
+
+sub __hasAdverb{
+	my ($sym, $value) = @_;
+
+	grep {
+
+		$_ eq $value
+
+	} @{$ATTR{$sym} || []}
+}
 
 1;

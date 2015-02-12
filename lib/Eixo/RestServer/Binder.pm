@@ -33,6 +33,10 @@ sub run{
 	
 }
 
+sub response{
+	
+}
+
 sub __parser{
 	my ($self, $head, $args) = @_;
 

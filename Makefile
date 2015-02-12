@@ -1,7 +1,7 @@
 # This Makefile is for the Eixo::RestServer extension to perl.
 #
 # It was generated automatically by MakeMaker version
-# 6.86 (Revision: 68600) from the contents of
+# 6.78 (Revision: 67800) from the contents of
 # Makefile.PL. Don't edit this file, edit Makefile.PL instead.
 #
 #       ANY CHANGES MADE HERE WILL BE LOST!
@@ -137,8 +137,8 @@ PERM_RW = 644
 PERM_RWX = 755
 
 MAKEMAKER   = /usr/local/share/perl/5.14.2/ExtUtils/MakeMaker.pm
-MM_VERSION  = 6.86
-MM_REVISION = 68600
+MM_VERSION  = 6.78
+MM_REVISION = 67800
 
 # FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
 # BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
@@ -187,7 +187,12 @@ TO_INST_PM = a.pl \
 	lib/Eixo/RestServer.pm \
 	lib/Eixo/RestServer/Binder.pm \
 	lib/Eixo/RestServer/BinderCGI.pm \
-	lib/Eixo/RestServer/Parser.pm
+	lib/Eixo/RestServer/BinderTest.pm \
+	lib/Eixo/RestServer/Job.pm \
+	lib/Eixo/RestServer/Parser.pm \
+	lib/Eixo/RestServer/Queue.pm \
+	lib/Eixo/RestServer/QueueThread.pm \
+	lib/Eixo/RestServer/Queues.pm
 
 PM_TO_BLIB = a.pl \
 	$(INST_LIB)/Eixo/a.pl \
@@ -197,12 +202,22 @@ PM_TO_BLIB = a.pl \
 	blib/lib/Eixo/RestServer/Binder.pm \
 	lib/Eixo/RestServer/BinderCGI.pm \
 	blib/lib/Eixo/RestServer/BinderCGI.pm \
+	lib/Eixo/RestServer/BinderTest.pm \
+	blib/lib/Eixo/RestServer/BinderTest.pm \
+	lib/Eixo/RestServer/Job.pm \
+	blib/lib/Eixo/RestServer/Job.pm \
 	lib/Eixo/RestServer/Parser.pm \
-	blib/lib/Eixo/RestServer/Parser.pm
+	blib/lib/Eixo/RestServer/Parser.pm \
+	lib/Eixo/RestServer/Queue.pm \
+	blib/lib/Eixo/RestServer/Queue.pm \
+	lib/Eixo/RestServer/QueueThread.pm \
+	blib/lib/Eixo/RestServer/QueueThread.pm \
+	lib/Eixo/RestServer/Queues.pm \
+	blib/lib/Eixo/RestServer/Queues.pm
 
 
 # --- MakeMaker platform_constants section:
-MM_Unix_VERSION = 6.86
+MM_Unix_VERSION = 6.78
 PERL_MALLOC_DEF = -DPERL_EXTMALLOC_DEF -Dmalloc=Perl_malloc -Dfree=Perl_mfree -Drealloc=Perl_realloc -Dcalloc=Perl_calloc
 
 
@@ -244,7 +259,6 @@ MACROSTART =
 MACROEND = 
 USEMAKEFILE = -f
 FIXIN = $(ABSPERLRUN) -MExtUtils::MY -e 'MY->fixin(shift)' --
-CP_NONEMPTY = $(ABSPERLRUN) -MExtUtils::Command::MM -e 'cp_nonempty' --
 
 
 # --- MakeMaker makemakerdflt section:
@@ -389,15 +403,15 @@ linkext :: $(LINKTYPE)
 # --- MakeMaker dlsyms section:
 
 
+# --- MakeMaker dynamic section:
+
+dynamic :: $(FIRST_MAKEFILE) $(INST_DYNAMIC) $(INST_BOOT)
+	$(NOECHO) $(NOOP)
+
+
 # --- MakeMaker dynamic_bs section:
 
 BOOTSTRAP =
-
-
-# --- MakeMaker dynamic section:
-
-dynamic :: $(FIRST_MAKEFILE) $(BOOTSTRAP) $(INST_DYNAMIC)
-	$(NOECHO) $(NOOP)
 
 
 # --- MakeMaker dynamic_lib section:
@@ -496,7 +510,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) 'configure_requires:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  ExtUtils::MakeMaker: 0' >> META_new.yml
 	$(NOECHO) $(ECHO) 'dynamic_config: 1' >> META_new.yml
-	$(NOECHO) $(ECHO) 'generated_by: '\''ExtUtils::MakeMaker version 6.86, CPAN::Meta::Converter version 2.120351'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) 'generated_by: '\''ExtUtils::MakeMaker version 6.78, CPAN::Meta::Converter version 2.120351'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'license: unknown' >> META_new.yml
 	$(NOECHO) $(ECHO) 'meta-spec:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  url: http://module-build.sourceforge.net/META-spec-v1.4.html' >> META_new.yml
@@ -516,7 +530,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '      "Francisco <fmaseda@>"' >> META_new.json
 	$(NOECHO) $(ECHO) '   ],' >> META_new.json
 	$(NOECHO) $(ECHO) '   "dynamic_config" : 1,' >> META_new.json
-	$(NOECHO) $(ECHO) '   "generated_by" : "ExtUtils::MakeMaker version 6.86, CPAN::Meta::Converter version 2.120351",' >> META_new.json
+	$(NOECHO) $(ECHO) '   "generated_by" : "ExtUtils::MakeMaker version 6.78, CPAN::Meta::Converter version 2.120351",' >> META_new.json
 	$(NOECHO) $(ECHO) '   "license" : [' >> META_new.json
 	$(NOECHO) $(ECHO) '      "unknown"' >> META_new.json
 	$(NOECHO) $(ECHO) '   ],' >> META_new.json
@@ -866,7 +880,12 @@ pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	  lib/Eixo/RestServer.pm blib/lib/Eixo/RestServer.pm \
 	  lib/Eixo/RestServer/Binder.pm blib/lib/Eixo/RestServer/Binder.pm \
 	  lib/Eixo/RestServer/BinderCGI.pm blib/lib/Eixo/RestServer/BinderCGI.pm \
-	  lib/Eixo/RestServer/Parser.pm blib/lib/Eixo/RestServer/Parser.pm 
+	  lib/Eixo/RestServer/BinderTest.pm blib/lib/Eixo/RestServer/BinderTest.pm \
+	  lib/Eixo/RestServer/Job.pm blib/lib/Eixo/RestServer/Job.pm \
+	  lib/Eixo/RestServer/Parser.pm blib/lib/Eixo/RestServer/Parser.pm \
+	  lib/Eixo/RestServer/Queue.pm blib/lib/Eixo/RestServer/Queue.pm \
+	  lib/Eixo/RestServer/QueueThread.pm blib/lib/Eixo/RestServer/QueueThread.pm \
+	  lib/Eixo/RestServer/Queues.pm blib/lib/Eixo/RestServer/Queues.pm 
 	$(NOECHO) $(TOUCH) pm_to_blib
 
 

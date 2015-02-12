@@ -1,6 +1,7 @@
 package Eixo::RestServer::Parser;
 
 use strict;
+use attributes qw(get);
 
 my $REST_VERBS = qr/(GET|POST|DELETE|PUT)/;
 
@@ -34,7 +35,11 @@ sub parse{
 
 	sub __parseAction{
 		my ($action, $module) = @_;
-	
+
+		use Data::Dumper;
+
+		print Dumper(get($module->can($action)));	
+
 		my ($verb, $entity) = $action =~ /$ACTION/;	
 
 		{
