@@ -21,10 +21,19 @@ has(
 
 	methods_r=>undef,
 
-	queues=>Eixo::RestServer::Queues->new,
+	queues=>undef,
 
 	response=>undef,
 );
+
+sub initialize{
+
+	$_[0]->queues(
+
+		Eixo::RestServer::Queues->new
+
+	);
+}
 
 sub install{
 	my ($self) = @_;
@@ -49,6 +58,8 @@ sub install{
 
 sub process{
 	my ($self, $entity, $verb, %args) = @_;
+
+	$self->response('');
 
 	my $action = $self->route($entity, $verb);
 
@@ -76,7 +87,13 @@ sub route{
 
 		$self->__restricted(%args) if(&__hasAdverb($sym, 'RESTRICTED'));
 
-		$self->__defer(%args) if(&__hasAdverb($sym, 'DEFER'));
+		if(my $d = &__hasAdverb($sym, 'F')){
+
+			%args = $self->__formatArgs($d->{formatter}, %args) 
+
+		}
+
+		$self->__defer($code, %args) if(&__hasAdverb($sym, 'DEFER'));
 
 		$self->$code(%args);
 
@@ -123,6 +140,12 @@ sub jobInstance{
 	my ($self, %args) = @_;
 
 	my $id = $args{id} || Eixo::RestServer::Job::ID;
+
+	Eixo::RestServer::Job->new(
+
+		id=>$id
+
+	);
 }
 
 
@@ -154,6 +177,15 @@ sub badRequest{
 	);
 }
 
+sub expectationFailed{
+
+	$_[0]->ko(
+
+		'417'
+
+	);
+}
+
 sub ok{
 	my ($self, $response) = @_;
 	
@@ -180,6 +212,8 @@ sub ko{
 
 	goto END_RUN;
 }
+
+
 
 
 #
@@ -218,6 +252,12 @@ sub Defer :ATTR(CODE){
 		my $job = $self->jobInstance();
 
 		$self->$method($job, @args);
+
+		$self->ok(
+
+			$job->id	
+
+		);
 	}
 
 #
@@ -228,13 +268,15 @@ sub F :ATTR(CODE){
 
 	my $formatter =  sub {
 
+		$_[0] =~ s/^\/+//;
+
 		my ($entity, @parts) = split(/\/+/, $_[0]);
 
 		my $i = 0;
 
 		map {
 
-			$_ =>$parts[$i++]
+			$_ => $parts[$i++]
 
 		} @{$data || []};
 
@@ -242,6 +284,18 @@ sub F :ATTR(CODE){
 
 	&__declareAdverb($code, 'F', formatter=>$formatter);
 }
+
+	sub __formatArgs{
+		my ($self, $formatter, %args) = @_;
+
+		if(my $url = $args{__url}){
+
+			%args = (%args, $formatter->($url));
+
+		}
+
+		%args;
+	}
 
 #
 # Adverbs
@@ -264,5 +318,35 @@ sub __hasAdverb{
 	}
 
 }
+
+
+
+
+
+#======================================
+#    Default methods
+#======================================
+sub GET_job :F(id){
+	my ($self, %args) = @_;	
+
+	$self->badRequest unless($args{id});
+
+	if(my $job = $self->getJob($args{id})){
+
+		$self->ok(
+
+			$job->serialize
+
+		);
+
+	}
+	else{
+
+		$self->expectationFailed;
+	
+	}
+}
+
+
 
 1;

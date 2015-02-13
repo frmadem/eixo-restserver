@@ -50,9 +50,10 @@ sub createQueue{
 
 		die(ref($self) . '::createQueue: queue must exist and be an instance of Eixo::RestServer::Queue');
 
-		$self->queues->{$queue->name} = $queue;
 
 	}
+
+	$self->queues->{$queue->name} = $queue;
 }
 
 
