@@ -62,7 +62,7 @@ sub authorized{
 
 }
 
-sub GET_alumno {
+sub GET_alumno :F(id, action){
 
 	$_[0]->ok(
 		'GET_alumno'

@@ -3,6 +3,7 @@ package Eixo::RestServer::Job;
 use strict;
 use Eixo::Base::Clase;
 
+use JSON -convert_blessed_universally;
 use Data::UUID;
 
 my $UUID_INSTANCE;
@@ -37,6 +38,28 @@ has(
 	results=>{},
 
 );
+
+sub finished{
+
+	$_[0]->status(FINISHED);
+
+}
+
+sub serialize{
+	my ($self) = @_;
+
+	JSON->new->convert_blessed->encode( $self )
+}
+
+sub unserialize{
+	my ($package, $data) = @_;
+
+	if(ref($package)){
+		$package = ref($package);
+	}
+
+	bless(JSON->new->decode($data), $package);
+}
 
 sub setArg{
 	my ($self, $key, $value) = @_;

@@ -145,6 +145,15 @@ sub notAuthorized{
 	);
 }
 
+sub badRequest{
+
+	$_[0]->ko(
+
+		'400'
+
+	);
+}
+
 sub ok{
 	my ($self, $response) = @_;
 	
@@ -211,27 +220,49 @@ sub Defer :ATTR(CODE){
 		$self->$method($job, @args);
 	}
 
+#
+# Url format
+#
+sub F :ATTR(CODE){
+	my ($pkg, $sym, $code, $attr_name, $data) = @_;	
+
+	my $formatter =  sub {
+
+		my ($entity, @parts) = split(/\/+/, $_[0]);
+
+		my $i = 0;
+
+		map {
+
+			$_ =>$parts[$i++]
+
+		} @{$data || []};
+
+	};
+
+	&__declareAdverb($code, 'F', formatter=>$formatter);
+}
 
 #
 # Adverbs
 #
 sub __declareAdverb{
-	my ($sym, $value) = @_;
+	my ($sym, $value, %args) = @_;
 
-	$ATTR{$sym} = [] unless($ATTR{$sym});
+	$ATTR{$sym} = {} unless($ATTR{$sym});
 
-	push @{$ATTR{$sym}}, $value;
+	$ATTR{$sym}->{$value} = \%args;
 
 }
 
 sub __hasAdverb{
 	my ($sym, $value) = @_;
 
-	grep {
+	if(my $h = $ATTR{$sym}){
 
-		$_ eq $value
+		$h->{$value};
+	}
 
-	} @{$ATTR{$sym} || []}
 }
 
 1;
