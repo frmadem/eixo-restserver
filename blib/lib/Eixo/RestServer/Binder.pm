@@ -14,8 +14,7 @@ sub install{
 
 	$self->instance($instance);
 
-	$_[0]->__install;
-
+	return $_[0]->__install;
 }
 
 sub process{
@@ -44,14 +43,16 @@ sub __parser{
 	#
 	# Entity comes from the url
 	#	
-	my ($entity) = $head->{URL} =~ /^\/(\w+)\//;
+	my ($entity) = $head->{URL} =~ /^\/(\w+)/;
 
 	my ($verb) = $head->{METHOD};
 
 	#
 	# ARGS = (GET + POST)
 	#
-	my %args = %{$head->{GET_ARGS} || {}}, %{$head->{POST_ARGS} || {}};
+	my %args = %{$args->{GET_ARGS} || {}}, %{$args->{POST_ARGS} || {}};
+
+	$args{__url} = $head->{URL};
 
 	$entity, $verb, %args;
 

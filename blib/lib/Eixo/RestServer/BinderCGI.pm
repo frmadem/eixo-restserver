@@ -1,15 +1,18 @@
 package Eixo::RestServer::BinderCGI;
 
 use strict;
-use Eixo::Base::Clase;
 use parent qw(Eixo::RestServer::Binder);
+
+use Eixo::Base::Clase;
 
 has(
 
 	port=>undef,
 	
+	pid=>undef,
 
 );
+
 
 sub response{
 	my ($self, $response) = @_;
@@ -29,18 +32,36 @@ sub response{
 sub __install{
 	my ($self) = @_;
 
-	&Eixo::RestServer::BinderCGIProcess::start_server(
+	$self->{pid} = &Eixo::RestServer::BinderCGIProcess::start_server(
 
 		$self->port,
 		
 		sub {
 
-			$self->run(@_)
+			my ($cgi) = @_;
+
+			my ($head, $args) = $self->__format($cgi);
+
+			$self->run($head, $args)
 
 		}
 
 	);
 	
+}
+
+sub __format{
+	my ($self, $cgi) = @_;
+
+	{		
+		URL=>$cgi->path_info,
+
+		METHOD=>$cgi->request_method,
+	},
+
+	{
+
+	}
 }
 
 
@@ -51,6 +72,7 @@ use parent qw(HTTP::Server::Simple::CGI);
 
 sub start_server{
 	my ($port, $on_request) = @_;
+
 
 	my $server = __PACKAGE__->new;
 	
@@ -63,14 +85,14 @@ sub start_server{
 }
 
 sub handle_request{
-	my ($self) = @_;
+	my ($self, $cgi) = @_;
 
-	my @args;
+	$self->{cgi} = $cgi;
 
-	my $ret = $self->{on_request}->(@args);
+	my $ret = $self->{on_request}->($cgi);
 
-	
 	$self->__head($ret->[0], $ret->[1]);
+	
 	$self->__body($ret->[2]);
 
 }
@@ -87,8 +109,6 @@ sub handle_request{
 
 	sub __body{
 		my ($self, $body) = @_;
-
-		print join('', @{$body});
 
 	}
 

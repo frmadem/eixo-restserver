@@ -42,8 +42,6 @@ sub install{
 
 	my $methods = &Eixo::RestServer::Parser::parse($self);
 
-	$self->server->install($self);
-
 	$self->methods_r({
 
 		map {
@@ -54,6 +52,8 @@ sub install{
 		} @$methods
 
 	});
+
+	return $self->server->install($self);
 }
 
 sub process{

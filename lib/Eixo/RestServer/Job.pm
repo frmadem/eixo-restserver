@@ -45,6 +45,11 @@ sub finished{
 
 }
 
+sub processing{
+
+	$_[0]->status(PROCESSING);
+}
+
 sub serialize{
 	my ($self) = @_;
 
