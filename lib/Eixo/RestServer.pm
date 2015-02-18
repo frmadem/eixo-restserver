@@ -1,5 +1,6 @@
 package Eixo::RestServer;
 
+
 use 5.008;
 use strict;
 use warnings;
@@ -10,8 +11,8 @@ use attributes;
 
 use Eixo::Base::Clase;
 use Eixo::RestServer::Parser;
-use Eixo::RestServer::Queues;
-use Eixo::RestServer::Job;
+use Eixo::Queue::Queues;
+use Eixo::Queue::Job;
 
 my %ATTR;
 
@@ -30,7 +31,7 @@ sub initialize{
 
 	$_[0]->queues(
 
-		Eixo::RestServer::Queues->new
+		Eixo::Queue::Queues->new
 
 	);
 }
@@ -80,32 +81,32 @@ sub route{
 }
 
 
-	sub __RUN{
-		my ($self, $code, %args) = @_;
+sub __RUN{
+	my ($self, $code, %args) = @_;
 
-		my $sym = ref($code) ? $code : ($code = $self->can($code));
+	my $sym = ref($code) ? $code : ($code = $self->can($code));
 
-		$self->__restricted(%args) if(&__hasAdverb($sym, 'RESTRICTED'));
+	$self->__restricted(%args) if(&__hasAdverb($sym, 'RESTRICTED'));
 
-		if(my $d = &__hasAdverb($sym, 'F')){
+	if(my $d = &__hasAdverb($sym, 'F')){
 
-			%args = $self->__formatArgs($d->{formatter}, %args) 
-
-		}
-
-		$self->__defer($code, %args) if(&__hasAdverb($sym, 'DEFER'));
-
-		$self->$code(%args);
-
-		END_RUN:
-
-		$self->server->response(
-
-			$self->response
-	
-		);
+		%args = $self->__formatArgs($d->{formatter}, %args) 
 
 	}
+
+	$self->__defer($code, %args) if(&__hasAdverb($sym, 'DEFER'));
+
+	$self->$code(%args);
+
+	END_RUN:
+
+	$self->server->response(
+
+		$self->response
+
+	);
+
+}
 
 #
 # Queues
@@ -139,9 +140,9 @@ sub getJob{
 sub jobInstance{
 	my ($self, %args) = @_;
 
-	my $id = $args{id} || Eixo::RestServer::Job::ID;
+	my $id = $args{id} || Eixo::Queue::Job::ID;
 
-	Eixo::RestServer::Job->new(
+	Eixo::Queue::Job->new(
 
 		id=>$id
 
@@ -184,6 +185,17 @@ sub expectationFailed{
 		'417'
 
 	);
+}
+
+sub accepted{
+
+	$_[0]->response({
+
+		code=>202,
+
+		body=>$_[1]
+
+	});
 }
 
 sub ok{
@@ -333,7 +345,7 @@ sub GET_job :F(id){
 
 	if(my $job = $self->getJob($args{id})){
 
-		$self->ok(
+		$self->accepted(
 
 			$job->serialize
 
@@ -342,7 +354,7 @@ sub GET_job :F(id){
 	}
 	else{
 
-		$self->expectationFailed;
+		$self->notFound;
 	
 	}
 }

@@ -101,7 +101,6 @@ sub GET_a{
 sub GET_b :F(id){
 	my ($self, %args) = @_;
 	
-
 	$_[0]->ok(
 
 		"B=" .$args{id}

@@ -187,6 +187,7 @@ TO_INST_PM = a.pl \
 	lib/Eixo/RestServer.pm \
 	lib/Eixo/RestServer/Binder.pm \
 	lib/Eixo/RestServer/BinderCGI.pm \
+	lib/Eixo/RestServer/BinderPlack.pm \
 	lib/Eixo/RestServer/BinderTest.pm \
 	lib/Eixo/RestServer/Job.pm \
 	lib/Eixo/RestServer/Parser.pm \
@@ -202,6 +203,8 @@ PM_TO_BLIB = a.pl \
 	blib/lib/Eixo/RestServer/Binder.pm \
 	lib/Eixo/RestServer/BinderCGI.pm \
 	blib/lib/Eixo/RestServer/BinderCGI.pm \
+	lib/Eixo/RestServer/BinderPlack.pm \
+	blib/lib/Eixo/RestServer/BinderPlack.pm \
 	lib/Eixo/RestServer/BinderTest.pm \
 	blib/lib/Eixo/RestServer/BinderTest.pm \
 	lib/Eixo/RestServer/Job.pm \
@@ -506,22 +509,22 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  - '\''Francisco <fmaseda@>'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'build_requires:' >> META_new.yml
-	$(NOECHO) $(ECHO) '  ExtUtils::MakeMaker: 0' >> META_new.yml
+	$(NOECHO) $(ECHO) '  ExtUtils::MakeMaker: '\''0'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'configure_requires:' >> META_new.yml
-	$(NOECHO) $(ECHO) '  ExtUtils::MakeMaker: 0' >> META_new.yml
+	$(NOECHO) $(ECHO) '  ExtUtils::MakeMaker: '\''0'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'dynamic_config: 1' >> META_new.yml
-	$(NOECHO) $(ECHO) 'generated_by: '\''ExtUtils::MakeMaker version 6.78, CPAN::Meta::Converter version 2.120351'\''' >> META_new.yml
+	$(NOECHO) $(ECHO) 'generated_by: '\''ExtUtils::MakeMaker version 6.78, CPAN::Meta::Converter version 2.143240'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'license: unknown' >> META_new.yml
 	$(NOECHO) $(ECHO) 'meta-spec:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  url: http://module-build.sourceforge.net/META-spec-v1.4.html' >> META_new.yml
-	$(NOECHO) $(ECHO) '  version: 1.4' >> META_new.yml
+	$(NOECHO) $(ECHO) '  version: '\''1.4'\''' >> META_new.yml
 	$(NOECHO) $(ECHO) 'name: Eixo-RestServer' >> META_new.yml
 	$(NOECHO) $(ECHO) 'no_index:' >> META_new.yml
 	$(NOECHO) $(ECHO) '  directory:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - t' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - inc' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires: {}' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version: 0' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version: '\''0'\''' >> META_new.yml
 	-$(NOECHO) $(MV) META_new.yml $(DISTVNAME)/META.yml
 	$(NOECHO) $(ECHO) Generating META.json
 	$(NOECHO) $(ECHO) '{' > META_new.json
@@ -530,7 +533,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '      "Francisco <fmaseda@>"' >> META_new.json
 	$(NOECHO) $(ECHO) '   ],' >> META_new.json
 	$(NOECHO) $(ECHO) '   "dynamic_config" : 1,' >> META_new.json
-	$(NOECHO) $(ECHO) '   "generated_by" : "ExtUtils::MakeMaker version 6.78, CPAN::Meta::Converter version 2.120351",' >> META_new.json
+	$(NOECHO) $(ECHO) '   "generated_by" : "ExtUtils::MakeMaker version 6.78, CPAN::Meta::Converter version 2.143240",' >> META_new.json
 	$(NOECHO) $(ECHO) '   "license" : [' >> META_new.json
 	$(NOECHO) $(ECHO) '      "unknown"' >> META_new.json
 	$(NOECHO) $(ECHO) '   ],' >> META_new.json
@@ -880,6 +883,7 @@ pm_to_blib : $(FIRST_MAKEFILE) $(TO_INST_PM)
 	  lib/Eixo/RestServer.pm blib/lib/Eixo/RestServer.pm \
 	  lib/Eixo/RestServer/Binder.pm blib/lib/Eixo/RestServer/Binder.pm \
 	  lib/Eixo/RestServer/BinderCGI.pm blib/lib/Eixo/RestServer/BinderCGI.pm \
+	  lib/Eixo/RestServer/BinderPlack.pm blib/lib/Eixo/RestServer/BinderPlack.pm \
 	  lib/Eixo/RestServer/BinderTest.pm blib/lib/Eixo/RestServer/BinderTest.pm \
 	  lib/Eixo/RestServer/Job.pm blib/lib/Eixo/RestServer/Job.pm \
 	  lib/Eixo/RestServer/Parser.pm blib/lib/Eixo/RestServer/Parser.pm \
