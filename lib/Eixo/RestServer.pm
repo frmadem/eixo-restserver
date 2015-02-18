@@ -4,14 +4,14 @@ use 5.008;
 use strict;
 use warnings;
 
-use lib '/home/fmaseda/Eixo-RestServer/lib';
-
 use attributes;
 
 use Eixo::Base::Clase;
 use Eixo::RestServer::Parser;
 use Eixo::RestServer::Queues;
 use Eixo::RestServer::Job;
+
+our $VERSION = '0.006';
 
 my %ATTR;
 
