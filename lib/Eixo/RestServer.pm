@@ -196,6 +196,7 @@ sub accepted{
 		body=>$_[1]
 
 	});
+	
 }
 
 sub ok{
@@ -265,11 +266,25 @@ sub Defer :ATTR(CODE){
 
 		$self->$method($job, @args);
 
-		$self->ok(
+		if($job->status eq 'FINISHED'){
 
-			$job->id	
+			$self->ok(
 
-		);
+				$job->serialize
+
+			);
+
+		}
+		else{
+
+			$self->accepted(
+
+				$job->id	
+
+			);
+
+			goto END_RUN;
+		}
 	}
 
 #
