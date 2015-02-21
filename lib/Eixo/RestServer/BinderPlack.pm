@@ -54,7 +54,7 @@ sub __format{
 
 			$1 => $2
 
-		} split(/\,/, $cgi->{QUERY_STRING}) }
+		} split(/\&/, $cgi->{QUERY_STRING}) }
 		
 	}
 
