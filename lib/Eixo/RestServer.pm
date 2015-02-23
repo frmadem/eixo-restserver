@@ -94,7 +94,12 @@ sub __RUN{
 
 	}
 
-	$self->__defer($code, %args) if(&__hasAdverb($sym, 'DEFER'));
+ 
+	if(my $d = &__hasAdverb($sym, 'DEFER')){
+
+		$self->__defer($code, $d->{queue}, %args);
+
+	}
 
 	$self->$code(%args);
 
@@ -252,17 +257,19 @@ sub Restricted :ATTR(ANY){
 sub Defer :ATTR(CODE){
 	my ($pkg, $sym, $code, $attr_name, $data) = @_;	
 
-	&__declareAdverb($code, 'DEFER');
+	&__declareAdverb($code, 'DEFER', queue=>$data->[0]);
 
 }
 
 	sub __defer{
-		my ($self, $method, @args) = @_;
+		my ($self, $method, $queue, @args) = @_;
 
 		#
 		# Instance a Job
 		#
 		my $job = $self->jobInstance();
+
+		$job->queue($queue);
 
 		$self->$method($job, @args);
 
