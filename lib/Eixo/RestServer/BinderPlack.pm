@@ -45,6 +45,14 @@ sub __format{
 
 		METHOD=>$cgi->{REQUEST_METHOD},	
 
+		HEADERS => map {
+
+			my ($k) = $_ =~ /^HTTP_(.+)$/;
+
+			lc($k) => $cgi->{$_}
+
+		} grep { $_ =~ /^HTTP_/ } keys(%$cgi)
+
 	},
 
 	{
