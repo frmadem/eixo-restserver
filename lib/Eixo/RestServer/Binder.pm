@@ -50,7 +50,11 @@ sub __parser{
 	#
 	# ARGS = (GET + POST)
 	#
-	my %args = %{$args->{GET_ARGS} || {}}, %{$args->{POST_ARGS} || {}};
+	my %args = %{$args->{GET_ARGS} || {}}, %{$args->{POST_ARGS} || {}}, (__header=>sub {
+
+		$head;	
+
+	});
 
 	$args{__url} = $head->{URL};
 
