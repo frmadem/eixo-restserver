@@ -12,6 +12,7 @@ my $RESPONSE;
 my $PID;
 
 my $PORT = 2000+int(rand(1000));
+my $HOST = '127.0.0.1';
 
 eval{
 
@@ -27,7 +28,7 @@ eval{
 
 			my $psgi = HTTP::Server::Simple::PSGI->new($PORT);
    			
-			$psgi->host($host);
+			$psgi->host($HOST);
    			$psgi->app($server->install);
    			$psgi->run;	
 
@@ -45,7 +46,7 @@ eval{
 
 	my $ua = LWP::UserAgent->new;
 
-	my $url = "http://127.0.0.1:$PORT/a";
+	my $url = "http://$HOST:$PORT/a";
 
 	my $r = $ua->get($url);
 
@@ -53,7 +54,7 @@ eval{
 
 	ok($r->decoded_content =~ /A/, 'Body correct');
 
-	$url = "http://127.0.0.1:$PORT/b/bear";
+	$url = "http://$HOST:$PORT/b/bear";
 
 	$r = $ua->get($url);
 
