@@ -13,8 +13,10 @@ use Eixo::Queue::Queues;
 use Eixo::Queue::Job;
 
 our $VERSION = '0.006';
+our @EXPORT = qw(POST GET PUT DELETE);
 
 my %ATTR;
+
 
 has(
 
@@ -354,9 +356,6 @@ sub __hasAdverb{
 }
 
 
-
-
-
 #======================================
 #    Default methods
 #======================================
@@ -381,6 +380,62 @@ sub GET_job :F(id){
 	}
 }
 
+#
+# Classical method-definers
+#
+sub GET{
+        $_[0]->DEFINER('GET', @_[1..$#_]);
+}
+
+sub POST{
+
+}
+
+sub PUT{
+
+}
+
+sub DELETE{
+
+}
+
+sub DEFINER{
+    my ($self, $verb, $url, %args) = @_;
+
+    ($url, my $cortadores = $self->placeholders($url);  
+
+    
+
+}
+
+sub placeholders{
+    my ($self, $url) = @_;
+
+    my $tramo = 0;
+
+    my @cortadores;
+
+    map {
+ 
+        if($_ =~ /\:(\w+)/)  {
+
+            push @cortadores, {
+
+                tramo=>$tramo,
+
+                clave=>$1
+
+            };
+
+            $tramo++;
+        }
+
+    } split(/\//, $url); 
+
+    $url =~ s/\:(\w+)/\*/g;
+
+    $url, \@cortadores;
+}
 
 
 1;
