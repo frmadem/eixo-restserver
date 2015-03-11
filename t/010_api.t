@@ -3,18 +3,19 @@ use t::test_base;
 
 use strict;
 
-
-
 package TestApi;
 
 use Eixo::Base::Clase qw(Eixo::RestServer);
 
+use Eixo::RestServer::AutomaticPaths;
+
 sub POST_test_apply :F(id)  { 
        my ($self, %args) = @_;
-    ('Test.apply', 
 }
 
-POST '/test/:id/apply',
+__PACKAGE__->POST(
+        
+    '/test/:id/apply',
 
     command=>'Test.apply', 
 
@@ -22,4 +23,8 @@ POST '/test/:id/apply',
         forzar => 's'
     } ,
 
-    queue => 'cola_rapida'; 
+    queue => 'cola_rapida'
+     
+);
+
+die Dumper(Eixo::RestServer::AutomaticPaths->getPaths(__PACKAGE__)); use Data::Dumper;

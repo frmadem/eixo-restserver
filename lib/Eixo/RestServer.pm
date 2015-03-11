@@ -12,11 +12,17 @@ use Eixo::RestServer::Parser;
 use Eixo::Queue::Queues;
 use Eixo::Queue::Job;
 
+use Eixo::RestServer::Router;
+use Eixo::RestServer::AutomaticPaths;
+
+use MIME::Base64;
+
 our $VERSION = '0.006';
 our @EXPORT = qw(POST GET PUT DELETE);
 
 my %ATTR;
 
+my %URLS;
 
 has(
 
@@ -27,6 +33,8 @@ has(
 	queues=>undef,
 
 	response=>undef,
+
+    router=>undef,
 );
 
 sub initialize{
@@ -36,6 +44,12 @@ sub initialize{
 		Eixo::Queue::Queues->new
 
 	);
+
+    $_[0]->router(
+    
+        Eixo::RestServer::Router->new
+
+    ) unless($_[0]->router);
 }
 
 sub install{
@@ -56,6 +70,22 @@ sub install{
 
 	});
 
+    #
+    # Declare paths 
+    #
+    foreach(@{Eixo::RestServer::AutomaticPaths->getPaths(ref($self))}){
+
+            $self->router->setResolve(
+            
+                    $_->{verb},
+
+                    $_->{url},
+
+                    $_->{method}    
+
+            );
+    }
+
 	return $self->server->install($self);
 }
 
@@ -64,18 +94,21 @@ sub process{
 
 	$self->response('');
 
-	my $action = $self->route($entity, $verb);
+	my ($action, $routed) = $self->route($entity, $verb, $args{__url});
 
-	$self->__RUN($action, %args) if($action);
+	$self->__RUN($action, %args, __forceDefer=>$routed) if($action);
 
 }
 
 sub route{
-	my ($self, $entity, $verb) = @_;
+	my ($self, $entity, $verb, $url) = @_;
 
 	if(my $action = $self->methods_r->{$entity . '_' . $verb}){
 		return $action->{code};
 	}
+    elsif($action = $self->router->route($verb, $url)){
+        return $self->can($action), '__forceDefer';
+    }
 	else{
 		return $self->can('notFound');
 	}
@@ -102,6 +135,12 @@ sub __RUN{
 		$self->__defer($code, $d->{queue}, %args);
 
 	}
+
+    if($args{__forceDefer}){
+        
+        $self->__defer($code, undef, %args);
+
+    }
 
 	$self->$code(%args);
 
@@ -384,28 +423,82 @@ sub GET_job :F(id){
 # Classical method-definers
 #
 sub GET{
-        $_[0]->DEFINER('GET', @_[1..$#_]);
+
+        my $class = (caller(0))[0];
+
+        $class->DEFINER('GET', @_[1..$#_]);
 }
 
 sub POST{
 
+        my $class = (caller(0))[0];
+
+        $class->DEFINER('POST', @_[1..$#_]);
 }
 
 sub PUT{
+
+        my $class = (caller(0))[0];
+
+        $class->DEFINER('PUT', @_[1..$#_]);
 
 }
 
 sub DELETE{
 
+        my $class = (caller(0))[0];
+
+        $class->DEFINER('DELETE', @_[1..$#_]);
+
 }
 
 sub DEFINER{
-    my ($self, $verb, $url, %args) = @_;
+    my ($clase, $verb, $url, %args) = @_;
 
-    ($url, my $cortadores = $self->placeholders($url);  
+    my $new_method = $clase->toMethodName($url);
 
+    ($url, my $cortadores) = $clase->placeholders($url);  
+
+    no strict 'refs';
+
+    *{$clase . '::' . $new_method} = sub {
+            my ($self, $job, %nargs) = @_;
+
+            my @t = split(/\/+/, $args{__url});
+
+            my %url_args = map {
+
+                $_->(\@t)
+
+            } @$cortadores;
+
+            $job->queue($args{queue}) if(exists($args{queue}));
+
+            $job->args({%nargs, %url_args, %{$args{args}}});
+
+            $job->command($args{command} || $clase->inferCommand($verb, $url));
+    };
+
+    Eixo::RestServer::AutomaticPaths->addPath(
     
+        $clase,
 
+        $new_method,
+
+        $url,
+
+        $verb        
+            
+    );
+
+}
+
+sub inferCommand {
+    my ($self, $verb, $url) = @_;
+
+    my @partes =  (grep { !~ /\*/ } split /\//, $url);
+
+    return uc_first($parts[0]).'.'.$partes[1];
 }
 
 sub placeholders{
@@ -419,11 +512,12 @@ sub placeholders{
  
         if($_ =~ /\:(\w+)/)  {
 
-            push @cortadores, {
+            my $clave = 1;
+            my $n = $tramo;
 
-                tramo=>$tramo,
+            push @cortadores, sub {
 
-                clave=>$1
+                    $clave = $_[0]->[$n]
 
             };
 
@@ -437,5 +531,13 @@ sub placeholders{
     $url, \@cortadores;
 }
 
+sub toMethodName{
+    my ($self, $url) = @_;
+
+    $url =~ s/\//_/g;
+    $url =~ s/\:/_/g;
+
+    $url;
+}
 
 1;
