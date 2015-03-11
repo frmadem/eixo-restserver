@@ -64,10 +64,6 @@ sub __parser{
 }
 
 
-sub __install{
-
-	die(ref($_[0]) . '::__install: ABSTRACT!');
-
-}
+sub __install :Abstract {}
 
 1;

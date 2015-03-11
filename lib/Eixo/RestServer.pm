@@ -459,12 +459,15 @@ sub DEFINER{
 
     ($url, my $cortadores) = $clase->placeholders($url);  
 
+    my %fixed_args = %{$args{args} || {}};
+
     no strict 'refs';
 
     *{$clase . '::' . $new_method} = sub {
+
             my ($self, $job, %nargs) = @_;
 
-            my @t = split(/\/+/, $args{__url});
+            my @t = split(/\/+/, $nargs{__url});
 
             my %url_args = map {
 
@@ -474,10 +477,12 @@ sub DEFINER{
 
             $job->queue($args{queue}) if(exists($args{queue}));
 
-            $job->args({%nargs, %url_args, %{$args{args}}});
+            $job->args({(%nargs, %url_args, %fixed_args)});
 
-            $job->command($args{command} || $clase->inferCommand($verb, $url));
+            $job->args->{command} = ($args{command} || $clase->inferCommand($verb, $url));
+
     };
+
 
     Eixo::RestServer::AutomaticPaths->addPath(
     
@@ -496,9 +501,9 @@ sub DEFINER{
 sub inferCommand {
     my ($self, $verb, $url) = @_;
 
-    my @partes =  (grep { !~ /\*/ } split /\//, $url);
+    my @parts =  ( grep { $_ !~ /\*/ } split /\//, $url);
 
-    return uc_first($parts[0]).'.'.$partes[1];
+    return ucfirst($parts[1]).'.'.$parts[2];
 }
 
 sub placeholders{
@@ -512,19 +517,24 @@ sub placeholders{
  
         if($_ =~ /\:(\w+)/)  {
 
-            my $clave = 1;
+            my $clave = $1;
             my $n = $tramo;
 
             push @cortadores, sub {
 
-                    $clave = $_[0]->[$n]
+                    $clave => $_[0]->[$n]
 
             };
 
-            $tramo++;
         }
 
-    } split(/\//, $url); 
+        $tramo++;
+       
+        #/foo/:id/:accion/lanzar
+        #
+        # /foo/346/borrar/lanzar
+
+    } split(/\/+/, $url); 
 
     $url =~ s/\:(\w+)/\*/g;
 
