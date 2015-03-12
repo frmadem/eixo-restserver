@@ -18,7 +18,7 @@ sub parse{
 
 	my @methods = grep {
 
-		$_ =~ /^$REST_VERBS/
+		$_ =~ /^$ACTION/
 
 	} $module->methods;
 
@@ -35,6 +35,7 @@ sub parse{
 
 	sub __parseAction{
 		my ($action, $module) = @_;
+
 
 		my ($verb, $entity) = $action =~ /$ACTION/;	
 

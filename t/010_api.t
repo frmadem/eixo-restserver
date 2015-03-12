@@ -1,6 +1,6 @@
 package TestApi;
 
-use Eixo::Base::Clase qw(Eixo::RestServer);
+use Eixo::Base::Clase qw(CatroEixos::Server);
 
 use Eixo::RestServer::AutomaticPaths;
 
@@ -37,11 +37,11 @@ use t::test_base;
 use strict;
 my $i = 0;
 
-TestApi->__defer('_test__id_apply', undef,__url => '/test/23/apply');
+TestApi->new->__defer('_test__id_apply', undef,__url => '/test/23/apply');
 END_RUN:
 goto FIN if($i++ > 1);
 
-TestApi->__defer('_test2__id_apply2', undef,__url => '/test2/232/apply2');
+TestApi->new->__defer('_test2__id_apply2', undef,__url => '/test2/232/apply2');
 FIN:
 
 my $paths = (Eixo::RestServer::AutomaticPaths->getPaths('TestApi'));

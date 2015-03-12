@@ -62,7 +62,7 @@ sub normalizeResolve{
         
     } split(/\/+/, $query);
 
-    my $reg = join('\/', @t);
+    my $reg = '/'.join('/', @t);
 
     qr{$reg};
 }

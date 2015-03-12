@@ -24,6 +24,10 @@ my %ATTR;
 
 my %URLS;
 
+sub DEFAULT_QUEUE {}
+
+
+
 has(
 
 	server=>undef,
@@ -59,9 +63,11 @@ sub install{
 
 	my $methods = &Eixo::RestServer::Parser::parse($self);
 
+
 	$self->methods_r({
 
 		map {
+
 
 			$_->{entity} .'_' . $_->{verb} => $_		
 
@@ -88,6 +94,7 @@ sub install{
 
 	return $self->server->install($self);
 }
+
 
 sub process{
 	my ($self, $entity, $verb, %args) = @_;
@@ -142,6 +149,7 @@ sub __RUN{
 
     }
 
+    # if isn't going throught jobs then execute code
 	$self->$code(%args);
 
 	END_RUN:
@@ -154,6 +162,38 @@ sub __RUN{
 
 }
 
+	sub __defer{
+		my ($self, $method, $queue, @args) = @_;
+
+		#
+		# Instance a Job
+		#
+		my $job = $self->jobInstance();
+
+		$job->queue($queue || $self->DEFAULT_QUEUE);
+
+		$self->$method($job, @args);
+
+		if($job->status eq 'FINISHED'){
+
+			$self->ok(
+
+				$job->serialize
+
+			);
+
+		}
+		else{
+
+			$self->accepted(
+
+				$job->id	
+
+			);
+
+			goto END_RUN;
+		}
+	}
 #
 # Queues
 # 
@@ -170,7 +210,6 @@ sub createQueue{
 #
 sub addJob{
 	my ($self, $job) = @_;
-
 	$self->queues->addJob($job);
 }
 
@@ -302,38 +341,6 @@ sub Defer :ATTR(CODE){
 
 }
 
-	sub __defer{
-		my ($self, $method, $queue, @args) = @_;
-
-		#
-		# Instance a Job
-		#
-		my $job = $self->jobInstance();
-
-		$job->queue($queue);
-
-		$self->$method($job, @args);
-
-		if($job->status eq 'FINISHED'){
-
-			$self->ok(
-
-				$job->serialize
-
-			);
-
-		}
-		else{
-
-			$self->accepted(
-
-				$job->id	
-
-			);
-
-			goto END_RUN;
-		}
-	}
 
 #
 # Url format
@@ -475,13 +482,16 @@ sub DEFINER{
 
             } @$cortadores;
 
-            $job->queue($args{queue}) if(exists($args{queue}));
+            $job->queue($args{queue} || $self->DEFAULT_QUEUE);
 
             $job->args({(%nargs, %url_args, %fixed_args)});
 
             $job->args->{command} = ($args{command} || $clase->inferCommand($verb, $url));
 
+            $self->addJob($job);
+
     };
+
 
 
     Eixo::RestServer::AutomaticPaths->addPath(
@@ -548,6 +558,22 @@ sub toMethodName{
     $url =~ s/\:/_/g;
 
     $url;
+}
+
+sub import {
+    my ($class) = @_;
+
+    my $caller = caller;
+
+    {
+        no strict 'refs';
+
+        foreach my $method (@EXPORT){
+
+            *{$caller.'::'.$method} = \&{$method};
+        }
+    }
+
 }
 
 1;
